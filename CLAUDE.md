@@ -55,21 +55,32 @@ The Svalboard uses a split keyboard design with:
 - **Matrix scanning** via `matrix.c` with configurable scan timing (`turbo_scan`)
 - **Pointing devices** - Each half can have trackball (PMW3360/PMW3389), trackpoint, or Azoteq
 - **RGB layer indicators** - Per-layer HSV colors stored in EEPROM
-- **VIA/Vial protocol** - Custom configuration through `via_custom_value_command_kb()`
+- **VIA/Vial protocol** - Custom configuration through `via_custom_value_command_kb()` (optional, guarded by `VIA_ENABLE`)
 - **Split sync** via QMK's transaction RPC (`KEYBOARD_SYNC_A`)
+- **USB wake from sleep** - Custom handler for split keyboards with `NO_USB_STARTUP_CHECK`
+- **High-resolution scroll** - Uses `MOUSE_SHARED_EP` for proper hires scroll feature reports
 
 Key files:
-- `svalboard.c` - Main keyboard logic, EEPROM handling, VIA integration
+- `svalboard.c` - Main keyboard logic, EEPROM handling, VIA integration (works with or without VIA)
 - `svalboard.h` - Shared types including `saved_values_t` for persistent settings
 - `axis_scale.c` - Pointer axis scaling/calibration
 
 ### Viable Module
 
 The Viable module (`modules/viable-kb/core/`) provides dynamic QMK feature configuration:
-- Tap dance, combos, key overrides, alt repeat keys
+- Tap dance, combos, key overrides, alt repeat keys, leader sequences
 - QMK settings (tapping term, permissive hold, etc.)
-- Uses USB HID protocol with `0xDF` prefix
+- Layer state get/set for GUI synchronization
+- One-shot key settings
+- Uses USB HID protocol with `0xDF` prefix (separate from VIA's `0xFE`)
 - Stores data in EEPROM with build-timestamp-based validation
+
+Key command IDs (see `viable.h`):
+- `0x00` - Get protocol info
+- `0x01-0x08` - Tap dance, combo, key override, alt repeat key get/set
+- `0x10-0x13` - QMK settings query/get/set/reset
+- `0x14-0x15` - Leader sequence get/set
+- `0x16-0x17` - Layer state get/set (32-bit layer mask)
 
 To use Viable in a keymap, add to `keymap.json`:
 ```json
