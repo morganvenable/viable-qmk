@@ -310,6 +310,21 @@
             "shortName": "Sniper\n5x"
         },
         {
+            "name": "SV_SNIPER_2_TG",
+            "title": "Toggle slowing the cursor 2x.",
+            "shortName": "Sniper\n2xTG"
+        },
+        {
+            "name": "SV_SNIPER_3_TG",
+            "title": "Toggle slowing the cursor 3x.",
+            "shortName": "Sniper\n3xTG"
+        },
+        {
+            "name": "SV_SNIPER_5_TG",
+            "title": "Toggle slowing the cursor 5x.",
+            "shortName": "Sniper\n5xTG"
+        },
+        {
             "name": "SV_SCROLL_HOLD",
             "title": "Hold to toggle the scrolling mode of both pointers.",
             "shortName": "Scroll\nToggle\nHold"

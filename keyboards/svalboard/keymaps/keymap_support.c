@@ -478,6 +478,18 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
                 enable_scale_5 = true;
                 handle_sniper_key(true, 5);
                 return false;
+            case SV_SNIPER_2_TG:
+                enable_scale_2 = !enable_scale_2;
+                handle_sniper_key(enable_scale_2, 2);
+                return false;
+            case SV_SNIPER_3_TG:
+                enable_scale_3 = !enable_scale_3;
+                handle_sniper_key(enable_scale_3, 3);
+                return false;
+            case SV_SNIPER_5_TG:
+                enable_scale_5 = !enable_scale_5;
+                handle_sniper_key(enable_scale_5, 5);
+                return false;
             case SV_SCROLL_HOLD:
                 scroll_hold = true;
                 return false;
@@ -527,6 +539,10 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
             case SV_SNIPER_5:
                 enable_scale_5 = false;
                 handle_sniper_key(false, 5);
+                return false;
+            case SV_SNIPER_2_TG:
+            case SV_SNIPER_3_TG:
+            case SV_SNIPER_5_TG:
                 return false;
             case SV_SCROLL_HOLD:
                 scroll_hold = false;
