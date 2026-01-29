@@ -208,8 +208,19 @@ void handle_sniper_key(bool pressed, uint8_t divisor) {
     }
 }
 
+static uint16_t sniper_debug_timer = 0;
 report_mouse_t pointing_device_task_combined_user(report_mouse_t reportMouse1, report_mouse_t reportMouse2) {
     report_mouse_t ret_mouse;
+
+    if (timer_elapsed(sniper_debug_timer) > 1000) {
+        sniper_debug_timer = timer_read();
+        if (sniper_toggle_2 || sniper_toggle_3 || sniper_toggle_5 ||
+            enable_scale_2 || enable_scale_3 || enable_scale_5) {
+            uprintf("SNIPER_STATE: t2=%d t3=%d t5=%d e2=%d e3=%d e5=%d div=%d\n",
+                sniper_toggle_2, sniper_toggle_3, sniper_toggle_5,
+                enable_scale_2, enable_scale_3, enable_scale_5, sniper_x.div);
+        }
+    }
 
     if (enable_scale_2 || enable_scale_3 || enable_scale_5) {
         reportMouse1.x = add_to_axis(&sniper_x, reportMouse1.x);
@@ -553,6 +564,9 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
             case SV_SNIPER_2_TG:
             case SV_SNIPER_3_TG:
             case SV_SNIPER_5_TG:
+                uprintf("SNIPER_TG release: t2=%d t3=%d t5=%d e2=%d e3=%d e5=%d div=%d\n",
+                    sniper_toggle_2, sniper_toggle_3, sniper_toggle_5,
+                    enable_scale_2, enable_scale_3, enable_scale_5, sniper_x.div);
                 return false;
             case SV_SCROLL_HOLD:
                 scroll_hold = false;
