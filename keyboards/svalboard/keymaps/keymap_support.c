@@ -100,6 +100,10 @@ bool enable_scale_2 = false;
 bool enable_scale_3 = false;
 bool enable_scale_5 = false;
 
+bool sniper_toggle_2 = false;
+bool sniper_toggle_3 = false;
+bool sniper_toggle_5 = false;
+
 static bool scroll_hold    = false,
             scroll_toggle  = false;
 
@@ -479,16 +483,22 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
                 handle_sniper_key(true, 5);
                 return false;
             case SV_SNIPER_2_TG:
-                enable_scale_2 = !enable_scale_2;
-                handle_sniper_key(enable_scale_2, 2);
+                sniper_toggle_2 = !sniper_toggle_2;
+                enable_scale_2 = sniper_toggle_2;
+                handle_sniper_key(sniper_toggle_2, 2);
+                uprintf("SNIPER_2_TG: toggle=%d enable=%d\n", sniper_toggle_2, enable_scale_2);
                 return false;
             case SV_SNIPER_3_TG:
-                enable_scale_3 = !enable_scale_3;
-                handle_sniper_key(enable_scale_3, 3);
+                sniper_toggle_3 = !sniper_toggle_3;
+                enable_scale_3 = sniper_toggle_3;
+                handle_sniper_key(sniper_toggle_3, 3);
+                uprintf("SNIPER_3_TG: toggle=%d enable=%d\n", sniper_toggle_3, enable_scale_3);
                 return false;
             case SV_SNIPER_5_TG:
-                enable_scale_5 = !enable_scale_5;
-                handle_sniper_key(enable_scale_5, 5);
+                sniper_toggle_5 = !sniper_toggle_5;
+                enable_scale_5 = sniper_toggle_5;
+                handle_sniper_key(sniper_toggle_5, 5);
+                uprintf("SNIPER_5_TG: toggle=%d enable=%d\n", sniper_toggle_5, enable_scale_5);
                 return false;
             case SV_SCROLL_HOLD:
                 scroll_hold = true;
@@ -529,15 +539,15 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
                 check_layer_67();
                 return false;
             case SV_SNIPER_2:
-                enable_scale_2 = false;
+                enable_scale_2 = sniper_toggle_2;
                 handle_sniper_key(false, 2);
                 return false;
             case SV_SNIPER_3:
-                enable_scale_3 = false;
+                enable_scale_3 = sniper_toggle_3;
                 handle_sniper_key(false, 3);
                 return false;
             case SV_SNIPER_5:
-                enable_scale_5 = false;
+                enable_scale_5 = sniper_toggle_5;
                 handle_sniper_key(false, 5);
                 return false;
             case SV_SNIPER_2_TG:
