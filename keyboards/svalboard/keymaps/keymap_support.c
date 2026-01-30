@@ -104,10 +104,8 @@ bool sniper_toggle_2 = false;
 bool sniper_toggle_3 = false;
 bool sniper_toggle_5 = false;
 
-#define sniper_active_2() (sniper_hold_2 > 0 || sniper_toggle_2)
-#define sniper_active_3() (sniper_hold_3 > 0 || sniper_toggle_3)
-#define sniper_active_5() (sniper_hold_5 > 0 || sniper_toggle_5)
-#define any_sniper_active() (sniper_active_2() || sniper_active_3() || sniper_active_5())
+#define any_sniper_active() (sniper_hold_2 + sniper_toggle_2 + \
+    sniper_hold_3 + sniper_toggle_3 + sniper_hold_5 + sniper_toggle_5 > 0)
 
 static bool scroll_hold    = false,
             scroll_toggle  = false;
@@ -199,18 +197,15 @@ void update_axis_scroll_mode(int32_t h, int32_t v) {
     }
 }
 
-void handle_sniper_key(bool pressed, uint8_t divisor) {
-    if (!pressed) {
-        div_div_axis(&sniper_x, divisor);
-        div_div_axis(&sniper_y, divisor);
-        div_div_axis(&sniper_h, divisor);
-        div_div_axis(&sniper_v, divisor);
-    } else {
-        mult_div_axis(&sniper_x, divisor);
-        mult_div_axis(&sniper_y, divisor);
-        mult_div_axis(&sniper_h, divisor);
-        mult_div_axis(&sniper_v, divisor);
-    }
+void update_sniper_divisor(void) {
+    uint8_t div = 1;
+    for (uint8_t i = 0; i < sniper_hold_2 + sniper_toggle_2; i++) div *= 2;
+    for (uint8_t i = 0; i < sniper_hold_3 + sniper_toggle_3; i++) div *= 3;
+    for (uint8_t i = 0; i < sniper_hold_5 + sniper_toggle_5; i++) div *= 5;
+    set_div_axis(&sniper_x, div);
+    set_div_axis(&sniper_y, div);
+    set_div_axis(&sniper_h, div);
+    set_div_axis(&sniper_v, div);
 }
 
 report_mouse_t pointing_device_task_combined_user(report_mouse_t reportMouse1, report_mouse_t reportMouse2) {
@@ -477,30 +472,27 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
                 return false;
             case SV_SNIPER_2:
                 sniper_hold_2++;
-                handle_sniper_key(true, 2);
+                update_sniper_divisor();
                 return false;
             case SV_SNIPER_3:
                 sniper_hold_3++;
-                handle_sniper_key(true, 3);
+                update_sniper_divisor();
                 return false;
             case SV_SNIPER_5:
                 sniper_hold_5++;
-                handle_sniper_key(true, 5);
+                update_sniper_divisor();
                 return false;
             case SV_SNIPER_2_TG:
                 sniper_toggle_2 = !sniper_toggle_2;
-                handle_sniper_key(sniper_toggle_2, 2);
-                uprintf("SNIPER_2_TG: toggle=%d hold=%d\n", sniper_toggle_2, sniper_hold_2);
+                update_sniper_divisor();
                 return false;
             case SV_SNIPER_3_TG:
                 sniper_toggle_3 = !sniper_toggle_3;
-                handle_sniper_key(sniper_toggle_3, 3);
-                uprintf("SNIPER_3_TG: toggle=%d hold=%d\n", sniper_toggle_3, sniper_hold_3);
+                update_sniper_divisor();
                 return false;
             case SV_SNIPER_5_TG:
                 sniper_toggle_5 = !sniper_toggle_5;
-                handle_sniper_key(sniper_toggle_5, 5);
-                uprintf("SNIPER_5_TG: toggle=%d hold=%d\n", sniper_toggle_5, sniper_hold_5);
+                update_sniper_divisor();
                 return false;
             case SV_SCROLL_HOLD:
                 scroll_hold = true;
@@ -542,15 +534,15 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
                 return false;
             case SV_SNIPER_2:
                 if (sniper_hold_2 > 0) sniper_hold_2--;
-                handle_sniper_key(false, 2);
+                update_sniper_divisor();
                 return false;
             case SV_SNIPER_3:
                 if (sniper_hold_3 > 0) sniper_hold_3--;
-                handle_sniper_key(false, 3);
+                update_sniper_divisor();
                 return false;
             case SV_SNIPER_5:
                 if (sniper_hold_5 > 0) sniper_hold_5--;
-                handle_sniper_key(false, 5);
+                update_sniper_divisor();
                 return false;
             case SV_SNIPER_2_TG:
             case SV_SNIPER_3_TG:
