@@ -53,4 +53,15 @@ enum my_keycodes {
     SV_SAFE_RANGE, // Keycodes over this are safe on Svalboard.
 };
 
+extern uint8_t sniper_hold_2, sniper_hold_3, sniper_hold_5;
+extern bool sniper_toggle_2, sniper_toggle_3, sniper_toggle_5;
+void update_sniper_divisor(void);
+
+void sniper2_td_finished(tap_dance_state_t *state, void *user_data);
+void sniper2_td_reset(tap_dance_state_t *state, void *user_data);
+void sniper3_td_finished(tap_dance_state_t *state, void *user_data);
+void sniper3_td_reset(tap_dance_state_t *state, void *user_data);
+void sniper5_td_finished(tap_dance_state_t *state, void *user_data);
+void sniper5_td_reset(tap_dance_state_t *state, void *user_data);
+
 #define MH_AUTO_BUTTONS_LAYER (DYNAMIC_KEYMAP_LAYER_COUNT - 1)
