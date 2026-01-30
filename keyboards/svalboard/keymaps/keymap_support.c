@@ -208,62 +208,6 @@ void update_sniper_divisor(void) {
     set_div_axis(&sniper_v, div);
 }
 
-// Tap dance: tap = toggle, hold = momentary
-static bool sniper2_holding = false;
-static bool sniper3_holding = false;
-static bool sniper5_holding = false;
-
-void sniper2_td_finished(tap_dance_state_t *state, void *user_data) {
-    if (state->pressed) {
-        sniper2_holding = true;
-        sniper_hold_2++;
-    } else {
-        sniper_toggle_2 = !sniper_toggle_2;
-    }
-    update_sniper_divisor();
-}
-void sniper2_td_reset(tap_dance_state_t *state, void *user_data) {
-    if (sniper2_holding) {
-        sniper2_holding = false;
-        if (sniper_hold_2 > 0) sniper_hold_2--;
-        update_sniper_divisor();
-    }
-}
-
-void sniper3_td_finished(tap_dance_state_t *state, void *user_data) {
-    if (state->pressed) {
-        sniper3_holding = true;
-        sniper_hold_3++;
-    } else {
-        sniper_toggle_3 = !sniper_toggle_3;
-    }
-    update_sniper_divisor();
-}
-void sniper3_td_reset(tap_dance_state_t *state, void *user_data) {
-    if (sniper3_holding) {
-        sniper3_holding = false;
-        if (sniper_hold_3 > 0) sniper_hold_3--;
-        update_sniper_divisor();
-    }
-}
-
-void sniper5_td_finished(tap_dance_state_t *state, void *user_data) {
-    if (state->pressed) {
-        sniper5_holding = true;
-        sniper_hold_5++;
-    } else {
-        sniper_toggle_5 = !sniper_toggle_5;
-    }
-    update_sniper_divisor();
-}
-void sniper5_td_reset(tap_dance_state_t *state, void *user_data) {
-    if (sniper5_holding) {
-        sniper5_holding = false;
-        if (sniper_hold_5 > 0) sniper_hold_5--;
-        update_sniper_divisor();
-    }
-}
-
 report_mouse_t pointing_device_task_combined_user(report_mouse_t reportMouse1, report_mouse_t reportMouse2) {
     report_mouse_t ret_mouse;
 
