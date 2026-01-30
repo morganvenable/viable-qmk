@@ -96,13 +96,18 @@ int32_t m_scroll_accumulator_v = 0;
 
 bool scroll_timer_running = false;
 
-bool enable_scale_2 = false;
-bool enable_scale_3 = false;
-bool enable_scale_5 = false;
+uint8_t sniper_hold_2 = 0;
+uint8_t sniper_hold_3 = 0;
+uint8_t sniper_hold_5 = 0;
 
 bool sniper_toggle_2 = false;
 bool sniper_toggle_3 = false;
 bool sniper_toggle_5 = false;
+
+#define sniper_active_2() (sniper_hold_2 > 0 || sniper_toggle_2)
+#define sniper_active_3() (sniper_hold_3 > 0 || sniper_toggle_3)
+#define sniper_active_5() (sniper_hold_5 > 0 || sniper_toggle_5)
+#define any_sniper_active() (sniper_active_2() || sniper_active_3() || sniper_active_5())
 
 static bool scroll_hold    = false,
             scroll_toggle  = false;
@@ -208,21 +213,10 @@ void handle_sniper_key(bool pressed, uint8_t divisor) {
     }
 }
 
-static uint16_t sniper_debug_timer = 0;
 report_mouse_t pointing_device_task_combined_user(report_mouse_t reportMouse1, report_mouse_t reportMouse2) {
     report_mouse_t ret_mouse;
 
-    if (timer_elapsed(sniper_debug_timer) > 1000) {
-        sniper_debug_timer = timer_read();
-        if (sniper_toggle_2 || sniper_toggle_3 || sniper_toggle_5 ||
-            enable_scale_2 || enable_scale_3 || enable_scale_5) {
-            uprintf("SNIPER_STATE: t2=%d t3=%d t5=%d e2=%d e3=%d e5=%d div=%d\n",
-                sniper_toggle_2, sniper_toggle_3, sniper_toggle_5,
-                enable_scale_2, enable_scale_3, enable_scale_5, sniper_x.div);
-        }
-    }
-
-    if (enable_scale_2 || enable_scale_3 || enable_scale_5) {
+    if (any_sniper_active()) {
         reportMouse1.x = add_to_axis(&sniper_x, reportMouse1.x);
         reportMouse1.y = add_to_axis(&sniper_y, reportMouse1.y);
         reportMouse1.h = add_to_axis(&sniper_h, reportMouse1.h);
@@ -482,34 +476,31 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
                 check_layer_67();
                 return false;
             case SV_SNIPER_2:
-	            enable_scale_2 = true;
-				handle_sniper_key(true, 2);
+                sniper_hold_2++;
+                handle_sniper_key(true, 2);
                 return false;
             case SV_SNIPER_3:
-                enable_scale_3 = true;
+                sniper_hold_3++;
                 handle_sniper_key(true, 3);
                 return false;
             case SV_SNIPER_5:
-                enable_scale_5 = true;
+                sniper_hold_5++;
                 handle_sniper_key(true, 5);
                 return false;
             case SV_SNIPER_2_TG:
                 sniper_toggle_2 = !sniper_toggle_2;
-                enable_scale_2 = sniper_toggle_2;
                 handle_sniper_key(sniper_toggle_2, 2);
-                uprintf("SNIPER_2_TG: toggle=%d enable=%d\n", sniper_toggle_2, enable_scale_2);
+                uprintf("SNIPER_2_TG: toggle=%d hold=%d\n", sniper_toggle_2, sniper_hold_2);
                 return false;
             case SV_SNIPER_3_TG:
                 sniper_toggle_3 = !sniper_toggle_3;
-                enable_scale_3 = sniper_toggle_3;
                 handle_sniper_key(sniper_toggle_3, 3);
-                uprintf("SNIPER_3_TG: toggle=%d enable=%d\n", sniper_toggle_3, enable_scale_3);
+                uprintf("SNIPER_3_TG: toggle=%d hold=%d\n", sniper_toggle_3, sniper_hold_3);
                 return false;
             case SV_SNIPER_5_TG:
                 sniper_toggle_5 = !sniper_toggle_5;
-                enable_scale_5 = sniper_toggle_5;
                 handle_sniper_key(sniper_toggle_5, 5);
-                uprintf("SNIPER_5_TG: toggle=%d enable=%d\n", sniper_toggle_5, enable_scale_5);
+                uprintf("SNIPER_5_TG: toggle=%d hold=%d\n", sniper_toggle_5, sniper_hold_5);
                 return false;
             case SV_SCROLL_HOLD:
                 scroll_hold = true;
@@ -550,23 +541,20 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
                 check_layer_67();
                 return false;
             case SV_SNIPER_2:
-                enable_scale_2 = sniper_toggle_2;
+                if (sniper_hold_2 > 0) sniper_hold_2--;
                 handle_sniper_key(false, 2);
                 return false;
             case SV_SNIPER_3:
-                enable_scale_3 = sniper_toggle_3;
+                if (sniper_hold_3 > 0) sniper_hold_3--;
                 handle_sniper_key(false, 3);
                 return false;
             case SV_SNIPER_5:
-                enable_scale_5 = sniper_toggle_5;
+                if (sniper_hold_5 > 0) sniper_hold_5--;
                 handle_sniper_key(false, 5);
                 return false;
             case SV_SNIPER_2_TG:
             case SV_SNIPER_3_TG:
             case SV_SNIPER_5_TG:
-                uprintf("SNIPER_TG release: t2=%d t3=%d t5=%d e2=%d e3=%d e5=%d div=%d\n",
-                    sniper_toggle_2, sniper_toggle_3, sniper_toggle_5,
-                    enable_scale_2, enable_scale_3, enable_scale_5, sniper_x.div);
                 return false;
             case SV_SCROLL_HOLD:
                 scroll_hold = false;
