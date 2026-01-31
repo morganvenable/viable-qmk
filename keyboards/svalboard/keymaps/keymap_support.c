@@ -100,6 +100,10 @@ bool enable_scale_2 = false;
 bool enable_scale_3 = false;
 bool enable_scale_5 = false;
 
+bool sniper_toggle_2 = false;
+bool sniper_toggle_3 = false;
+bool sniper_toggle_5 = false;
+
 static bool scroll_hold    = false,
             scroll_toggle  = false;
 
@@ -207,7 +211,8 @@ void handle_sniper_key(bool pressed, uint8_t divisor) {
 report_mouse_t pointing_device_task_combined_user(report_mouse_t reportMouse1, report_mouse_t reportMouse2) {
     report_mouse_t ret_mouse;
 
-    if (enable_scale_2 || enable_scale_3 || enable_scale_5) {
+    if (enable_scale_2 || enable_scale_3 || enable_scale_5 ||
+        sniper_toggle_2 || sniper_toggle_3 || sniper_toggle_5) {
         reportMouse1.x = add_to_axis(&sniper_x, reportMouse1.x);
         reportMouse1.y = add_to_axis(&sniper_y, reportMouse1.y);
         reportMouse1.h = add_to_axis(&sniper_h, reportMouse1.h);
@@ -478,6 +483,18 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
                 enable_scale_5 = true;
                 handle_sniper_key(true, 5);
                 return false;
+            case SV_SNIPER_2_TG:
+                sniper_toggle_2 = !sniper_toggle_2;
+                handle_sniper_key(sniper_toggle_2, 2);
+                return false;
+            case SV_SNIPER_3_TG:
+                sniper_toggle_3 = !sniper_toggle_3;
+                handle_sniper_key(sniper_toggle_3, 3);
+                return false;
+            case SV_SNIPER_5_TG:
+                sniper_toggle_5 = !sniper_toggle_5;
+                handle_sniper_key(sniper_toggle_5, 5);
+                return false;
             case SV_SCROLL_HOLD:
                 scroll_hold = true;
                 return false;
@@ -527,6 +544,10 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
             case SV_SNIPER_5:
                 enable_scale_5 = false;
                 handle_sniper_key(false, 5);
+                return false;
+            case SV_SNIPER_2_TG:
+            case SV_SNIPER_3_TG:
+            case SV_SNIPER_5_TG:
                 return false;
             case SV_SCROLL_HOLD:
                 scroll_hold = false;
