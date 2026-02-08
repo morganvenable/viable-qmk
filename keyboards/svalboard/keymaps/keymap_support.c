@@ -214,6 +214,12 @@ void handle_sniper_key(bool pressed, uint8_t divisor) {
 report_mouse_t pointing_device_task_combined_user(report_mouse_t reportMouse1, report_mouse_t reportMouse2) {
     report_mouse_t ret_mouse;
 
+    // Capture raw movement BEFORE sniper processing for automouse threshold check.
+    // Using raw values prevents the sniper accumulator's residual remainder from
+    // producing phantom output that keeps mouse mode alive when the user is idle.
+    int32_t raw_left_movement = abs(reportMouse1.x) + abs(reportMouse1.y);
+    int32_t raw_right_movement = abs(reportMouse2.x) + abs(reportMouse2.y);
+
     if (any_sniper_active()) {
         reportMouse1.x = add_to_axis(&sniper_x, reportMouse1.x);
         reportMouse1.y = add_to_axis(&sniper_y, reportMouse1.y);
@@ -235,12 +241,10 @@ report_mouse_t pointing_device_task_combined_user(report_mouse_t reportMouse1, r
     bool has_scroll_input = (left_scrolling && (reportMouse1.x != 0 || reportMouse1.y != 0)) ||
                             (right_scrolling && (reportMouse2.x != 0 || reportMouse2.y != 0));
 
-    // Accumulate movement for threshold check BEFORE scroll conversion (normalized to 800 DPI reference)
-    // Use only the greater of left/right to prevent both sides shaking from triggering
-    int32_t left_movement = abs(reportMouse1.x) + abs(reportMouse1.y);
-    int32_t right_movement = abs(reportMouse2.x) + abs(reportMouse2.y);
-    int32_t left_normalized = (left_movement > 0) ? (left_movement * 800) / get_left_dpi() : 0;
-    int32_t right_normalized = (right_movement > 0) ? (right_movement * 800) / get_right_dpi() : 0;
+    // Use raw (pre-sniper) movement for automouse threshold check so sniper
+    // accumulator residual can't keep mouse mode alive when user is idle
+    int32_t left_normalized = (raw_left_movement > 0) ? (raw_left_movement * 800) / get_left_dpi() : 0;
+    int32_t right_normalized = (raw_right_movement > 0) ? (raw_right_movement * 800) / get_right_dpi() : 0;
     int32_t normalized_movement = (left_normalized > right_normalized) ? left_normalized : right_normalized;
     if (normalized_movement > 0) {
         uint16_t decay_ms = global_saved_values.automouse_decay * 10;
