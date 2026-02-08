@@ -403,8 +403,17 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
 	                    keycode == SV_MH_CHANGE_TIMEOUTS || \
                         keycode == SV_TOGGLE_AUTOMOUSE)
 
+        // Sniper toggles are instant actions, not held keys — they should not
+        // affect mouse_keys_pressed or reset the timer. Only mouse movement
+        // should keep the mouse layer active when a sniper toggle is used.
+#define MOUSE_PASSTHROUGH_KEYCODE (keycode == SV_SNIPER_2_TG || \
+                        keycode == SV_SNIPER_3_TG || \
+                        keycode == SV_SNIPER_5_TG)
+
         uint16_t layer_keycode = keymap_key_to_keycode(MH_AUTO_BUTTONS_LAYER, record->event.key);
-        if (BAD_KEYCODE_CONDITONAL ||
+        if (MOUSE_PASSTHROUGH_KEYCODE) {
+            // Fall through to switch statement without touching mouse mode state
+        } else if (BAD_KEYCODE_CONDITONAL ||
 	    layer_keycode != keycode) {
 #ifdef CONSOLE_ENABLE
             uprintf("process_record - mh_auto_buttons: off\n");
