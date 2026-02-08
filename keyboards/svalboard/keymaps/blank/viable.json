@@ -118,6 +118,21 @@
             "name": "SV_NATURAL_SCROLL_TOGGLE",
             "title": "Toggle natural scroll (inverts vertical scroll direction).",
             "shortName": "Natural\nScroll"
+        },
+        {
+            "name": "SV_SNIPER_2_TG",
+            "title": "Toggle sniper mode at 2x slowdown.",
+            "shortName": "Sniper\n2x TG"
+        },
+        {
+            "name": "SV_SNIPER_3_TG",
+            "title": "Toggle sniper mode at 3x slowdown.",
+            "shortName": "Sniper\n3x TG"
+        },
+        {
+            "name": "SV_SNIPER_5_TG",
+            "title": "Toggle sniper mode at 5x slowdown.",
+            "shortName": "Sniper\n5x TG"
         }
     ],
     "menus": [
