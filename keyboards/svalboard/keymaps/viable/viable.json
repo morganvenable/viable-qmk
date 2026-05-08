@@ -461,6 +461,11 @@
                             "label": "Axis Lock",
                             "type": "toggle",
                             "content": ["id_axis_lock", 0, 8]
+                        },
+                        {
+                            "label": "Legacy Scroll (PACS / pre-Vista apps)",
+                            "type": "toggle",
+                            "content": ["id_legacy_scroll", 0, 11]
                         }
                     ]
                 },

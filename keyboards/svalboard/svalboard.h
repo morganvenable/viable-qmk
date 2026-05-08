@@ -33,7 +33,8 @@ struct __attribute__((__packed__)) saved_values {
     bool axis_scroll_lock: 1;
     bool auto_mouse: 1;
     bool natural_scroll: 1;
-    unsigned int unused0 :3;
+    bool legacy_scroll: 1;        // emit legacy 1-detent scroll events instead of hi-res; for PACS / pre-Vista apps
+    unsigned int unused0 :2;
     uint8_t left_dpi_index;
     uint8_t right_dpi_index;
     uint8_t mh_timer_index;

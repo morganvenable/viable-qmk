@@ -114,6 +114,31 @@ static bool scroll_hold    = false,
 static bool pvs_hold    = false,
             pvs_toggle  = false;
 
+// Legacy-scroll remainder state. When global_saved_values.legacy_scroll is on,
+// hi-res scroll output (h,v) is divided by 120 before leaving the device so that
+// pre-Vista apps (PACS, etc.) that ignore the HID Resolution Multiplier feature
+// see one count per detent instead of 120. Fractional remainders are preserved
+// across ticks so PVS's per-tick output isn't lost to truncation.
+#define LEGACY_SCROLL_DIVISOR  POINTING_DEVICE_HIRES_SCROLL_MULTIPLIER
+static int32_t legacy_scroll_remainder_h = 0;
+static int32_t legacy_scroll_remainder_v = 0;
+
+static inline void apply_legacy_scroll(report_mouse_t *r) {
+    if (!global_saved_values.legacy_scroll) {
+        legacy_scroll_remainder_h = 0;
+        legacy_scroll_remainder_v = 0;
+        return;
+    }
+    int32_t total_h = (int32_t)r->h + legacy_scroll_remainder_h;
+    int32_t total_v = (int32_t)r->v + legacy_scroll_remainder_v;
+    int32_t out_h = total_h / LEGACY_SCROLL_DIVISOR;
+    int32_t out_v = total_v / LEGACY_SCROLL_DIVISOR;
+    legacy_scroll_remainder_h = total_h - out_h * LEGACY_SCROLL_DIVISOR;
+    legacy_scroll_remainder_v = total_v - out_v * LEGACY_SCROLL_DIVISOR;
+    r->h = (int16_t)out_h;
+    r->v = (int16_t)out_v;
+}
+
 
 #define AXIS_LOCK_BREAKAWAY_THRESHOLD 18750
 #define AXIS_LOCK_ENGAGE_THRESHOLD 6250
@@ -227,11 +252,15 @@ report_mouse_t pointing_device_task_combined_user(report_mouse_t reportMouse1, r
         reportMouse2.v = add_to_axis(&sniper_v, reportMouse2.v);
     }
 
-    // PVS intercept: when active, feed deltas into PVS and bypass normal scroll
-    if (pvs_is_active()) {
-        // Use the scroll-side trackball as PVS input (matches normal scroll-side selection)
+    // PVS replaces only the scroll-side delta-to-h/v transformation; the
+    // pointing-side x,y flow on through unchanged so the threshold accumulator
+    // below sees only true cursor motion (scroll-side x,y are zero by then).
+    bool pvs_active = pvs_is_active();
+    bool pvs_uses_left = global_saved_values.left_scroll;
+
+    if (pvs_active) {
         int16_t pvs_dx, pvs_dy;
-        if (global_saved_values.left_scroll) {
+        if (pvs_uses_left) {
             pvs_dx = reportMouse1.x;
             pvs_dy = reportMouse1.y;
             reportMouse1.x = 0;
@@ -242,38 +271,32 @@ report_mouse_t pointing_device_task_combined_user(report_mouse_t reportMouse1, r
             reportMouse2.x = 0;
             reportMouse2.y = 0;
         }
-
         int16_t pvs_h = 0, pvs_v = 0;
         pvs_process_deltas(pvs_dx, -pvs_dy, &pvs_h, &pvs_v);  // negate Y for natural scroll direction
-
         reportMouse1.h = pvs_h;
         reportMouse1.v = pvs_v;
+    }
 
-        // PVS deliberately does NOT call mouse_mode(true): scrolling here
-        // shouldn't keep the auto-mouse layer alive. Lets the user park the
-        // trackball at a fixed displacement and cruise without the mouse
-        // layer staying on indefinitely.
-
+    if (reportMouse1.x == 0 && reportMouse1.y == 0 && reportMouse2.x == 0 && reportMouse2.y == 0) {
         ret_mouse = pointing_device_combine_reports(reportMouse1, reportMouse2);
-
+        apply_legacy_scroll(&ret_mouse);
         if (global_saved_values.natural_scroll) {
             ret_mouse.v = -ret_mouse.v;
         }
-
-        return pointing_device_task_user(ret_mouse);
+        return ret_mouse;
     }
-
-    if (reportMouse1.x == 0 && reportMouse1.y == 0 && reportMouse2.x == 0 && reportMouse2.y == 0)
-        return pointing_device_combine_reports(reportMouse1, reportMouse2);
 
     // Track scroll input BEFORE division (h/v after division may be 0 due to accumulation)
     bool left_scrolling = (global_saved_values.left_scroll != scroll_hold) != scroll_toggle;
     bool right_scrolling = (global_saved_values.right_scroll != scroll_hold) != scroll_toggle;
-    bool has_scroll_input = (left_scrolling && (reportMouse1.x != 0 || reportMouse1.y != 0)) ||
-                            (right_scrolling && (reportMouse2.x != 0 || reportMouse2.y != 0));
+    bool left_pvs_owned = pvs_active && pvs_uses_left;
+    bool right_pvs_owned = pvs_active && !pvs_uses_left;
+    bool has_scroll_input = (left_scrolling && !left_pvs_owned && (reportMouse1.x != 0 || reportMouse1.y != 0)) ||
+                            (right_scrolling && !right_pvs_owned && (reportMouse2.x != 0 || reportMouse2.y != 0));
 
-    // Accumulate movement for threshold check BEFORE scroll conversion (normalized to 800 DPI reference)
-    // Use only the greater of left/right to prevent both sides shaking from triggering
+    // Threshold accumulator: with PVS active the scroll-side x,y are already
+    // zero (cleared above), so this naturally sees only pointing-side motion.
+    // Without PVS this is unchanged from the original behaviour.
     int32_t left_movement = abs(reportMouse1.x) + abs(reportMouse1.y);
     int32_t right_movement = abs(reportMouse2.x) + abs(reportMouse2.y);
     int32_t left_normalized = (left_movement > 0) ? (left_movement * 800) / get_left_dpi() : 0;
@@ -293,7 +316,7 @@ report_mouse_t pointing_device_task_combined_user(report_mouse_t reportMouse1, r
         }
     }
 
-    if (left_scrolling) {
+    if (left_scrolling && !left_pvs_owned) {
         reportMouse1.h = add_to_axis(&l_x, reportMouse1.x);
         reportMouse1.v = add_to_axis(&l_y, -reportMouse1.y);
 
@@ -301,7 +324,7 @@ report_mouse_t pointing_device_task_combined_user(report_mouse_t reportMouse1, r
         reportMouse1.x = 0;
         reportMouse1.y = 0;
     }
-    if (right_scrolling) {
+    if (right_scrolling && !right_pvs_owned) {
         reportMouse2.h = add_to_axis(&r_x, reportMouse2.x);
         reportMouse2.v = add_to_axis(&r_y, -reportMouse2.y);
 
@@ -309,46 +332,52 @@ report_mouse_t pointing_device_task_combined_user(report_mouse_t reportMouse1, r
         reportMouse2.y = 0;
     }
 
-    if (has_scroll_input && !scroll_timer_running) {
-        scroll_timer_running = true;
-        scroll_timer = timer_read();
-    }
-
-    if (scroll_timer_running) {
-        m_scroll_accumulator_h += ((int32_t)reportMouse1.h * 100000) / get_left_dpi();
-	m_scroll_accumulator_v += ((int32_t)reportMouse1.v * 100000) / get_left_dpi();
-	m_scroll_accumulator_h += ((int32_t)reportMouse2.h * 100000) / get_right_dpi();
-	m_scroll_accumulator_v += ((int32_t)reportMouse2.v * 100000) / get_right_dpi();
-
-        scroll_accumulator_h += reportMouse1.h + reportMouse2.h;
-        scroll_accumulator_v += reportMouse1.v + reportMouse2.v;
-        reportMouse1.h = reportMouse2.h = 0;
-        reportMouse1.v = reportMouse2.v = 0;
-    }
-
-    if (scroll_timer_running && timer_elapsed(scroll_timer) > SCROLL_FREQUENCY_MS) {
-        if (global_saved_values.axis_scroll_lock && !is_mac) {
-	    update_axis_scroll_mode(m_scroll_accumulator_h, m_scroll_accumulator_v);
-            if (axis_scroll_mode == SV_AXIS_LOCKED_V) {
-                reportMouse1.v = scroll_accumulator_v;
-                reportMouse1.h = 0;
-            } else {
-                reportMouse1.h = scroll_accumulator_h;
-                reportMouse1.v = 0;
-            }
-        } else {
-            reportMouse1.h = scroll_accumulator_h;
-            reportMouse1.v = scroll_accumulator_v;
+    // PVS produces final per-tick scroll output; skip the accumulator /
+    // axis-lock pipeline so it doesn't double-process or distort PVS h/v.
+    if (!pvs_active) {
+        if (has_scroll_input && !scroll_timer_running) {
+            scroll_timer_running = true;
+            scroll_timer = timer_read();
         }
 
-        scroll_timer_running = false;
-        scroll_accumulator_h = 0;
-        scroll_accumulator_v = 0;
-	m_scroll_accumulator_h = 0;
-	m_scroll_accumulator_v = 0;
+        if (scroll_timer_running) {
+            m_scroll_accumulator_h += ((int32_t)reportMouse1.h * 100000) / get_left_dpi();
+            m_scroll_accumulator_v += ((int32_t)reportMouse1.v * 100000) / get_left_dpi();
+            m_scroll_accumulator_h += ((int32_t)reportMouse2.h * 100000) / get_right_dpi();
+            m_scroll_accumulator_v += ((int32_t)reportMouse2.v * 100000) / get_right_dpi();
+
+            scroll_accumulator_h += reportMouse1.h + reportMouse2.h;
+            scroll_accumulator_v += reportMouse1.v + reportMouse2.v;
+            reportMouse1.h = reportMouse2.h = 0;
+            reportMouse1.v = reportMouse2.v = 0;
+        }
+
+        if (scroll_timer_running && timer_elapsed(scroll_timer) > SCROLL_FREQUENCY_MS) {
+            if (global_saved_values.axis_scroll_lock && !is_mac) {
+                update_axis_scroll_mode(m_scroll_accumulator_h, m_scroll_accumulator_v);
+                if (axis_scroll_mode == SV_AXIS_LOCKED_V) {
+                    reportMouse1.v = scroll_accumulator_v;
+                    reportMouse1.h = 0;
+                } else {
+                    reportMouse1.h = scroll_accumulator_h;
+                    reportMouse1.v = 0;
+                }
+            } else {
+                reportMouse1.h = scroll_accumulator_h;
+                reportMouse1.v = scroll_accumulator_v;
+            }
+
+            scroll_timer_running = false;
+            scroll_accumulator_h = 0;
+            scroll_accumulator_v = 0;
+            m_scroll_accumulator_h = 0;
+            m_scroll_accumulator_v = 0;
+        }
     }
 
     ret_mouse = pointing_device_combine_reports(reportMouse1, reportMouse2);
+
+    apply_legacy_scroll(&ret_mouse);
 
     if (global_saved_values.natural_scroll) {
         ret_mouse.v = -ret_mouse.v;

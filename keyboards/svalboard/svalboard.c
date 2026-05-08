@@ -79,6 +79,7 @@ void read_eeprom_kb(void) {
         global_saved_values.axis_scroll_lock = true;
         global_saved_values.turbo_scan = 0;
         global_saved_values.natural_scroll = false;
+        global_saved_values.legacy_scroll = false;
         global_saved_values.automouse_threshold = 50;
         global_saved_values.automouse_decay = 7;  // 70ms
         global_saved_values.pvs_config = (pvs_config_t)PVS_DEFAULT_CONFIG;
@@ -338,6 +339,7 @@ enum sval_via_value_id {
     id_axis_lock = 8,
     id_turbo_scan = 9,
     id_automouse_decay = 10,  // Accumulator decay time in 10ms units
+    id_legacy_scroll = 11,    // 1 = divide hi-res scroll output by 120 for pre-Vista apps (PACS, etc.)
     id_tapping_term = 16,
     id_permissive_hold = 17,
     id_hold_on_other_key = 18,
@@ -399,6 +401,9 @@ void via_custom_value_command_kb(uint8_t *data, uint8_t length) {
                 case id_automouse_decay:
                     global_saved_values.automouse_decay = value_data[0];
                     break;
+                case id_legacy_scroll:
+                    global_saved_values.legacy_scroll = value_data[0];
+                    break;
                 default:
                     // Layer colors: id 32-47
                     if (*value_id >= id_layer0_color && *value_id < id_layer0_color + 16) {
@@ -450,6 +455,9 @@ void via_custom_value_command_kb(uint8_t *data, uint8_t length) {
                     break;
                 case id_automouse_decay:
                     value_data[0] = global_saved_values.automouse_decay;
+                    break;
+                case id_legacy_scroll:
+                    value_data[0] = global_saved_values.legacy_scroll;
                     break;
                 default:
                     // Layer colors: id 32-47
