@@ -48,6 +48,12 @@ enum my_keycodes {
     SV_SNIPER_2_TG,
     SV_SNIPER_3_TG,
     SV_SNIPER_5_TG,
+    SV_BOOST_2,         // pos 24 — multiplies x/y AND h/v, like sniper divides both
+    SV_BOOST_3,         // pos 25
+    SV_BOOST_5,         // pos 26
+    SV_BOOST_2_TG,      // pos 27
+    SV_BOOST_3_TG,      // pos 28
+    SV_BOOST_5_TG,      // pos 29 — last addressable by GUI (cap is QK_USER_31 inclusive)
     KC_NORMAL_HOLD = SAFE_RANGE,
     KC_FUNC_HOLD,
     SV_SAFE_RANGE, // Keycodes over this are safe on Svalboard.

@@ -107,6 +107,22 @@ bool sniper_toggle_5 = false;
 #define any_sniper_active() (sniper_hold_2 + sniper_toggle_2 + \
     sniper_hold_3 + sniper_toggle_3 + sniper_hold_5 + sniper_toggle_5 > 0)
 
+axis_scale_t boost_x = {1, 1, 0};
+axis_scale_t boost_y = {1, 1, 0};
+axis_scale_t boost_h = {1, 1, 0};
+axis_scale_t boost_v = {1, 1, 0};
+
+uint8_t boost_hold_2 = 0;
+uint8_t boost_hold_3 = 0;
+uint8_t boost_hold_5 = 0;
+
+bool boost_toggle_2 = false;
+bool boost_toggle_3 = false;
+bool boost_toggle_5 = false;
+
+#define any_boost_active() (boost_hold_2 + boost_toggle_2 + \
+    boost_hold_3 + boost_toggle_3 + boost_hold_5 + boost_toggle_5 > 0)
+
 static bool scroll_hold    = false,
             scroll_toggle  = false;
 
@@ -208,6 +224,19 @@ void update_sniper_divisor(void) {
     set_div_axis(&sniper_v, div);
 }
 
+void update_boost_multiplier(void) {
+    uint16_t mult = 1;
+    for (uint8_t i = 0; i < boost_hold_2 + boost_toggle_2; i++) mult *= 2;
+    for (uint8_t i = 0; i < boost_hold_3 + boost_toggle_3; i++) mult *= 3;
+    for (uint8_t i = 0; i < boost_hold_5 + boost_toggle_5; i++) mult *= 5;
+    if (mult > 255) mult = 255;
+    set_mult_axis(&boost_x, (uint8_t)mult);
+    set_mult_axis(&boost_y, (uint8_t)mult);
+    set_mult_axis(&boost_h, (uint8_t)mult);
+    set_mult_axis(&boost_v, (uint8_t)mult);
+}
+
+
 report_mouse_t pointing_device_task_combined_user(report_mouse_t reportMouse1, report_mouse_t reportMouse2) {
     report_mouse_t ret_mouse;
 
@@ -221,6 +250,19 @@ report_mouse_t pointing_device_task_combined_user(report_mouse_t reportMouse1, r
         reportMouse2.y = add_to_axis(&sniper_y, reportMouse2.y);
         reportMouse2.h = add_to_axis(&sniper_h, reportMouse2.h);
         reportMouse2.v = add_to_axis(&sniper_v, reportMouse2.v);
+    }
+
+    // Pointer accel: mirror of sniper, multiplier instead of divisor.
+    if (any_boost_active()) {
+        reportMouse1.x = add_to_axis(&boost_x, reportMouse1.x);
+        reportMouse1.y = add_to_axis(&boost_y, reportMouse1.y);
+        reportMouse1.h = add_to_axis(&boost_h, reportMouse1.h);
+        reportMouse1.v = add_to_axis(&boost_v, reportMouse1.v);
+
+        reportMouse2.x = add_to_axis(&boost_x, reportMouse2.x);
+        reportMouse2.y = add_to_axis(&boost_y, reportMouse2.y);
+        reportMouse2.h = add_to_axis(&boost_h, reportMouse2.h);
+        reportMouse2.v = add_to_axis(&boost_v, reportMouse2.v);
     }
 
     if (reportMouse1.x == 0 && reportMouse1.y == 0 && reportMouse2.x == 0 && reportMouse2.y == 0)
@@ -256,7 +298,6 @@ report_mouse_t pointing_device_task_combined_user(report_mouse_t reportMouse1, r
     if (left_scrolling) {
         reportMouse1.h = add_to_axis(&l_x, reportMouse1.x);
         reportMouse1.v = add_to_axis(&l_y, -reportMouse1.y);
-
 
         reportMouse1.x = 0;
         reportMouse1.y = 0;
@@ -405,7 +446,10 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
         // should keep the mouse layer active when a sniper toggle is used.
 #define MOUSE_PASSTHROUGH_KEYCODE (keycode == SV_SNIPER_2_TG || \
                         keycode == SV_SNIPER_3_TG || \
-                        keycode == SV_SNIPER_5_TG)
+                        keycode == SV_SNIPER_5_TG || \
+                        keycode == SV_BOOST_2_TG || \
+                        keycode == SV_BOOST_3_TG || \
+                        keycode == SV_BOOST_5_TG)
 
         uint16_t layer_keycode = keymap_key_to_keycode(MH_AUTO_BUTTONS_LAYER, record->event.key);
         if (MOUSE_PASSTHROUGH_KEYCODE) {
@@ -527,6 +571,30 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
 	        global_saved_values.natural_scroll = !global_saved_values.natural_scroll;
 	        write_eeprom_kb();
 	        return false;
+            case SV_BOOST_2:
+                boost_hold_2++;
+                update_boost_multiplier();
+                return false;
+            case SV_BOOST_3:
+                boost_hold_3++;
+                update_boost_multiplier();
+                return false;
+            case SV_BOOST_5:
+                boost_hold_5++;
+                update_boost_multiplier();
+                return false;
+            case SV_BOOST_2_TG:
+                boost_toggle_2 = !boost_toggle_2;
+                update_boost_multiplier();
+                return false;
+            case SV_BOOST_3_TG:
+                boost_toggle_3 = !boost_toggle_3;
+                update_boost_multiplier();
+                return false;
+            case SV_BOOST_5_TG:
+                boost_toggle_5 = !boost_toggle_5;
+                update_boost_multiplier();
+                return false;
         }
     } else { // key released
         switch (keycode) {
@@ -556,6 +624,22 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
             case SV_SNIPER_2_TG:
             case SV_SNIPER_3_TG:
             case SV_SNIPER_5_TG:
+                return false;
+            case SV_BOOST_2:
+                if (boost_hold_2 > 0) boost_hold_2--;
+                update_boost_multiplier();
+                return false;
+            case SV_BOOST_3:
+                if (boost_hold_3 > 0) boost_hold_3--;
+                update_boost_multiplier();
+                return false;
+            case SV_BOOST_5:
+                if (boost_hold_5 > 0) boost_hold_5--;
+                update_boost_multiplier();
+                return false;
+            case SV_BOOST_2_TG:
+            case SV_BOOST_3_TG:
+            case SV_BOOST_5_TG:
                 return false;
             case SV_SCROLL_HOLD:
                 scroll_hold = false;
