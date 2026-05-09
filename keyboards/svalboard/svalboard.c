@@ -340,6 +340,8 @@ enum sval_via_value_id {
     id_turbo_scan = 9,
     id_automouse_decay = 10,  // Accumulator decay time in 10ms units
     id_legacy_scroll = 11,    // 1 = divide hi-res scroll output by 120 for pre-Vista apps (PACS, etc.)
+    id_pvs_pointing_term = 12, // PVS termination action on pointing-trackball motion (0=off, 1=park, 2=exit)
+    id_pvs_keypress_term = 13, // PVS termination action on keypress (0=off, 1=park, 2=exit)
     id_tapping_term = 16,
     id_permissive_hold = 17,
     id_hold_on_other_key = 18,
@@ -404,6 +406,16 @@ void via_custom_value_command_kb(uint8_t *data, uint8_t length) {
                 case id_legacy_scroll:
                     global_saved_values.legacy_scroll = value_data[0];
                     break;
+                case id_pvs_pointing_term:
+                    if (value_data[0] <= PVS_TERM_EXIT) {
+                        global_saved_values.pvs_config.pointing_term_action = value_data[0];
+                    }
+                    break;
+                case id_pvs_keypress_term:
+                    if (value_data[0] <= PVS_TERM_EXIT) {
+                        global_saved_values.pvs_config.keypress_term_action = value_data[0];
+                    }
+                    break;
                 default:
                     // Layer colors: id 32-47
                     if (*value_id >= id_layer0_color && *value_id < id_layer0_color + 16) {
@@ -458,6 +470,12 @@ void via_custom_value_command_kb(uint8_t *data, uint8_t length) {
                     break;
                 case id_legacy_scroll:
                     value_data[0] = global_saved_values.legacy_scroll;
+                    break;
+                case id_pvs_pointing_term:
+                    value_data[0] = global_saved_values.pvs_config.pointing_term_action;
+                    break;
+                case id_pvs_keypress_term:
+                    value_data[0] = global_saved_values.pvs_config.keypress_term_action;
                     break;
                 default:
                     // Layer colors: id 32-47

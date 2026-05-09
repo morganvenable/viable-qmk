@@ -479,6 +479,23 @@
                             "content": ["id_turbo_scan", 0, 9]
                         }
                     ]
+                },
+                {
+                    "label": "PVS",
+                    "content": [
+                        {
+                            "label": "Stop on Pointing Trackball Motion",
+                            "type": "dropdown",
+                            "options": ["Off", "Park (resume by re-engaging)", "Exit (re-toggle to resume)"],
+                            "content": ["id_pvs_pointing_term", 0, 12]
+                        },
+                        {
+                            "label": "Stop on Keypress",
+                            "type": "dropdown",
+                            "options": ["Off", "Park (resume by re-engaging)", "Exit (re-toggle to resume)"],
+                            "content": ["id_pvs_keypress_term", 0, 13]
+                        }
+                    ]
                 }
             ]
         },
