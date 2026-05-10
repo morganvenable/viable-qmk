@@ -125,6 +125,12 @@ const uint16_t dpi_choices[] = { 200, 400, 600, 800, 1200, 1600, 2400, 3200, 480
 #define DPI_CHOICES_LENGTH (sizeof(dpi_choices)/sizeof(dpi_choices[0]))
 extern bool is_mac;
 
+// Boost state lives in keymaps/keymap_support.c; surfaced here for output_keyboard_info.
+#include "axis_scale.h"
+extern uint8_t boost_hold_2, boost_hold_3, boost_hold_5;
+extern bool boost_toggle_2, boost_toggle_3, boost_toggle_5;
+extern axis_scale_t boost_x;
+
 void output_keyboard_info(void) {
     char output_buffer[256];
 
@@ -141,6 +147,11 @@ void output_keyboard_info(void) {
 	    yes_or_no(global_saved_values.auto_mouse),
 	    mh_timer_choices[global_saved_values.mh_timer_index],
 	    global_saved_values.turbo_scan);
+    send_string(output_buffer);
+    sprintf(output_buffer, "BOOST: hold[2,3,5]=%d,%d,%d  tg[2,3,5]=%d,%d,%d  mult=%d\n",
+            boost_hold_2, boost_hold_3, boost_hold_5,
+            boost_toggle_2, boost_toggle_3, boost_toggle_5,
+            boost_x.mult);
     send_string(output_buffer);
 }
 

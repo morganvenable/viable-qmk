@@ -133,6 +133,36 @@
             "name": "SV_SNIPER_5_TG",
             "title": "Toggle sniper mode at 5x slowdown.",
             "shortName": "Sniper\n5x TG"
+        },
+        {
+            "name": "SV_BOOST_2",
+            "title": "Hold to accelerate pointer and scroll 2x. Stacks with other pointer accel keys.",
+            "shortName": "Boost\n2x"
+        },
+        {
+            "name": "SV_BOOST_3",
+            "title": "Hold to accelerate pointer and scroll 3x. Stacks with other pointer accel keys.",
+            "shortName": "Boost\n3x"
+        },
+        {
+            "name": "SV_BOOST_5",
+            "title": "Hold to accelerate pointer and scroll 5x. Stacks with other pointer accel keys.",
+            "shortName": "Boost\n5x"
+        },
+        {
+            "name": "SV_BOOST_2_TG",
+            "title": "Toggle pointer/scroll 2x multiplier.",
+            "shortName": "Boost\n2x TG"
+        },
+        {
+            "name": "SV_BOOST_3_TG",
+            "title": "Toggle pointer/scroll 3x multiplier.",
+            "shortName": "Boost\n3x TG"
+        },
+        {
+            "name": "SV_BOOST_5_TG",
+            "title": "Toggle pointer/scroll 5x multiplier.",
+            "shortName": "Boost\n5x TG"
         }
     ],
     "menus": [
