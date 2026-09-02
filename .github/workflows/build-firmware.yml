@@ -16,7 +16,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: ghcr.io/qmk/qmk_cli
+    # Pinned: an unpinned (:latest) image changes under us with no commit, which is
+    # how the sibling vial-qmk release workflow broke twice. Bump deliberately.
+    container: ghcr.io/qmk/qmk_cli:1.2.0@sha256:b7d7fa8fb4432b569931de5ad59098cb788f440ed61a62c5126746b71aee0f4a
 
     steps:
     - name: Checkout code - Non PR
@@ -40,13 +42,17 @@ jobs:
     - name: Get tag version
       if: ${{ startsWith(github.ref, 'refs/tags/')}}
       id: get_version
-      run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
+      run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
 
     - name: Build firmware
       id: build_firmware
       run: |
         git config --global --add safe.directory '*'
-        pip3 install --break-system-packages -r requirements.txt
+        # Install into the image's qmk virtualenv (/opt/uv/tools/qmk, Python 3.14) --
+        # the interpreter the qmk CLI and every build step actually use. Addressing it
+        # as python3 -m pip does not depend on which pip3 shim wins on PATH, and needs
+        # no --break-system-packages because a venv is not PEP 668 managed.
+        python3 -m pip install -r requirements.txt
         qmk setup -y
         make ${{ inputs.keyboard }}/${{ inputs.side }}:${{ inputs.keymap }}
       shell: bash

@@ -21,6 +21,7 @@ jobs:
       side: ${{ matrix.side }}
 
     strategy:
+      fail-fast: false
       matrix:
         keyboard: [ svalboard, svalboard/trackpoint, svalboard/trackball/pmw3360, svalboard/trackball/pmw3389, svalboard/azoteq ]
         keymap: [ viable ]
@@ -34,6 +35,7 @@ jobs:
       side: ${{ matrix.side }}
 
     strategy:
+      fail-fast: false
       matrix:
         keyboard: [ svalboard ]
         keymap: [ blank ]
