@@ -35,6 +35,8 @@ jobs:
 
     strategy:
       matrix:
-        keyboard: [ svalboard ]
+        # azoteq included so the touchpad half has a blank (UI-configurable)
+        # build to test against, not just the full viable keymap.
+        keyboard: [ svalboard, svalboard/azoteq ]
         keymap: [ blank ]
         side: [ left, right ]
