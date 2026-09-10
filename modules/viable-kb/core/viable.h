@@ -19,11 +19,11 @@
 
 // Keyboard UID - use VIAL_KEYBOARD_UID for backwards compatibility with .vil files
 #ifndef VIABLE_KEYBOARD_UID
-#   ifdef VIAL_KEYBOARD_UID
-#       define VIABLE_KEYBOARD_UID VIAL_KEYBOARD_UID
-#   else
-#       define VIABLE_KEYBOARD_UID {0, 0, 0, 0, 0, 0, 0, 0}
-#   endif
+#    ifdef VIAL_KEYBOARD_UID
+#        define VIABLE_KEYBOARD_UID VIAL_KEYBOARD_UID
+#    else
+#        define VIABLE_KEYBOARD_UID {0, 0, 0, 0, 0, 0, 0, 0}
+#    endif
 #endif
 
 // Protocol prefix for 0xDF direct protocol
@@ -36,45 +36,45 @@
 
 // Viable command IDs (0xDF protocol v2)
 enum viable_command_id {
-    viable_cmd_get_info          = 0x00,
-    viable_cmd_tap_dance_get     = 0x01,
-    viable_cmd_tap_dance_set     = 0x02,
-    viable_cmd_combo_get         = 0x03,
-    viable_cmd_combo_set         = 0x04,
-    viable_cmd_key_override_get  = 0x05,
-    viable_cmd_key_override_set  = 0x06,
+    viable_cmd_get_info           = 0x00,
+    viable_cmd_tap_dance_get      = 0x01,
+    viable_cmd_tap_dance_set      = 0x02,
+    viable_cmd_combo_get          = 0x03,
+    viable_cmd_combo_set          = 0x04,
+    viable_cmd_key_override_get   = 0x05,
+    viable_cmd_key_override_set   = 0x06,
     viable_cmd_alt_repeat_key_get = 0x07,
     viable_cmd_alt_repeat_key_set = 0x08,
-    viable_cmd_one_shot_get      = 0x09,
-    viable_cmd_one_shot_set      = 0x0A,
-    viable_cmd_save              = 0x0B,
-    viable_cmd_reset             = 0x0C,
-    viable_cmd_definition_size   = 0x0D,
-    viable_cmd_definition_chunk  = 0x0E,
+    viable_cmd_one_shot_get       = 0x09,
+    viable_cmd_one_shot_set       = 0x0A,
+    viable_cmd_save               = 0x0B,
+    viable_cmd_reset              = 0x0C,
+    viable_cmd_definition_size    = 0x0D,
+    viable_cmd_definition_chunk   = 0x0E,
     // QMK Settings commands
     viable_cmd_qmk_settings_query = 0x10,
     viable_cmd_qmk_settings_get   = 0x11,
     viable_cmd_qmk_settings_set   = 0x12,
     viable_cmd_qmk_settings_reset = 0x13,
     // Leader commands
-    viable_cmd_leader_get        = 0x14,
-    viable_cmd_leader_set        = 0x15,
+    viable_cmd_leader_get = 0x14,
+    viable_cmd_leader_set = 0x15,
     // Layer state commands (32-bit layer mask)
-    viable_cmd_layer_state_get   = 0x16,
-    viable_cmd_layer_state_set   = 0x17,
+    viable_cmd_layer_state_get = 0x16,
+    viable_cmd_layer_state_set = 0x17,
     // Fragment commands (hardware detection and EEPROM selection)
     viable_cmd_fragment_get_hardware   = 0x18,
     viable_cmd_fragment_get_selections = 0x19,
     viable_cmd_fragment_set_selections = 0x1A,
-    viable_cmd_error             = 0xFF,
+    viable_cmd_error                   = 0xFF,
 };
 
 // Feature capability flags (returned in protocol info)
 enum viable_feature_flags {
-    viable_flag_caps_word   = (1 << 0),
-    viable_flag_layer_lock  = (1 << 1),
-    viable_flag_oneshot     = (1 << 2),
-    viable_flag_leader      = (1 << 3),
+    viable_flag_caps_word  = (1 << 0),
+    viable_flag_layer_lock = (1 << 1),
+    viable_flag_oneshot    = (1 << 2),
+    viable_flag_leader     = (1 << 3),
     // bits 4-7 reserved
 };
 
@@ -116,7 +116,7 @@ typedef struct __attribute__((packed)) {
     uint16_t on_hold;
     uint16_t on_double_tap;
     uint16_t on_tap_hold;
-    uint16_t custom_tapping_term;  // bit 15 = enabled, bits 0-14 = timing (ms)
+    uint16_t custom_tapping_term; // bit 15 = enabled, bits 0-14 = timing (ms)
 } viable_tap_dance_entry_t;
 _Static_assert(sizeof(viable_tap_dance_entry_t) == 10, "viable_tap_dance_entry_t must be 10 bytes");
 // Check if tap dance entry is enabled (bit 15 of custom_tapping_term)
@@ -125,22 +125,22 @@ _Static_assert(sizeof(viable_tap_dance_entry_t) == 10, "viable_tap_dance_entry_t
 // Combo entry structure (12 bytes)
 // Enabled when custom_combo_term bit 15 = 1
 typedef struct __attribute__((packed)) {
-    uint16_t input[4];             // Up to 4 trigger keys (0x0000 = unused)
-    uint16_t output;               // Output keycode
-    uint16_t custom_combo_term;    // bit 15 = enabled, bits 0-14 = timing (ms)
+    uint16_t input[4];          // Up to 4 trigger keys (0x0000 = unused)
+    uint16_t output;            // Output keycode
+    uint16_t custom_combo_term; // bit 15 = enabled, bits 0-14 = timing (ms)
 } viable_combo_entry_t;
 _Static_assert(sizeof(viable_combo_entry_t) == 12, "viable_combo_entry_t must be 12 bytes");
 
 // Key Override entry structure (12 bytes)
 // Enabled when options bit 7 = 1
 typedef struct __attribute__((packed)) {
-    uint16_t trigger;              // Trigger keycode
-    uint16_t replacement;          // Replacement keycode
-    uint32_t layers;               // Layer mask (bit per layer, 32 layers)
-    uint8_t  trigger_mods;         // Required modifiers
-    uint8_t  negative_mod_mask;    // Modifiers that cancel override
-    uint8_t  suppressed_mods;      // Modifiers to suppress
-    uint8_t  options;              // Option flags (bit 7 = enabled)
+    uint16_t trigger;           // Trigger keycode
+    uint16_t replacement;       // Replacement keycode
+    uint32_t layers;            // Layer mask (bit per layer, 32 layers)
+    uint8_t  trigger_mods;      // Required modifiers
+    uint8_t  negative_mod_mask; // Modifiers that cancel override
+    uint8_t  suppressed_mods;   // Modifiers to suppress
+    uint8_t  options;           // Option flags (bit 7 = enabled)
 } viable_key_override_entry_t;
 _Static_assert(sizeof(viable_key_override_entry_t) == 12, "viable_key_override_entry_t must be 12 bytes");
 
@@ -153,41 +153,41 @@ enum viable_key_override_options {
     viable_ko_option_no_reregister_trigger           = (1 << 4),
     viable_ko_option_no_unregister_on_other_key_down = (1 << 5),
     // bit 6 reserved
-    viable_ko_enabled                                = (1 << 7),
+    viable_ko_enabled = (1 << 7),
 };
 
 // Alt Repeat Key entry structure (6 bytes)
 // Enabled when options bit 3 = 1
 typedef struct __attribute__((packed)) {
-    uint16_t keycode;              // Original keycode to match
-    uint16_t alt_keycode;          // Alternate keycode to send on repeat
-    uint8_t  allowed_mods;         // Modifier mask for matching
-    uint8_t  options;              // Option flags (bit 3 = enabled)
+    uint16_t keycode;      // Original keycode to match
+    uint16_t alt_keycode;  // Alternate keycode to send on repeat
+    uint8_t  allowed_mods; // Modifier mask for matching
+    uint8_t  options;      // Option flags (bit 3 = enabled)
 } viable_alt_repeat_key_entry_t;
 _Static_assert(sizeof(viable_alt_repeat_key_entry_t) == 6, "viable_alt_repeat_key_entry_t must be 6 bytes");
 
 // Alt repeat key option bits
 enum viable_alt_repeat_key_options {
-    viable_ark_option_default_to_alt       = (1 << 0),
-    viable_ark_option_bidirectional        = (1 << 1),
+    viable_ark_option_default_to_alt        = (1 << 0),
+    viable_ark_option_bidirectional         = (1 << 1),
     viable_ark_option_ignore_mod_handedness = (1 << 2),
-    viable_ark_enabled                     = (1 << 3),
+    viable_ark_enabled                      = (1 << 3),
     // bits 4-7 reserved
 };
 
 // One-shot settings structure (3 bytes)
 typedef struct __attribute__((packed)) {
-    uint16_t timeout;      // One-shot timeout in ms (0 = disabled)
-    uint8_t  tap_toggle;   // Number of taps to toggle (0 = disabled)
+    uint16_t timeout;    // One-shot timeout in ms (0 = disabled)
+    uint8_t  tap_toggle; // Number of taps to toggle (0 = disabled)
 } viable_one_shot_t;
 _Static_assert(sizeof(viable_one_shot_t) == 3, "viable_one_shot_t must be 3 bytes");
 
 // Leader entry structure (14 bytes)
 // Enabled when options bit 15 = 1
 typedef struct __attribute__((packed)) {
-    uint16_t sequence[5];  // Up to 5 keys in order (0x0000 = unused/end)
-    uint16_t output;       // Output keycode
-    uint16_t options;      // bit 15 = enabled, bits 0-14 = reserved
+    uint16_t sequence[5]; // Up to 5 keys in order (0x0000 = unused/end)
+    uint16_t output;      // Output keycode
+    uint16_t options;     // bit 15 = enabled, bits 0-14 = reserved
 } viable_leader_entry_t;
 _Static_assert(sizeof(viable_leader_entry_t) == 14, "viable_leader_entry_t must be 14 bytes");
 
@@ -198,35 +198,35 @@ enum viable_leader_options {
 };
 
 // EEPROM layout constants - shared across all viable modules
-#define VIABLE_TAP_DANCE_OFFSET      0
-#define VIABLE_TAP_DANCE_SIZE        (VIABLE_TAP_DANCE_ENTRIES * sizeof(viable_tap_dance_entry_t))
+#define VIABLE_TAP_DANCE_OFFSET 0
+#define VIABLE_TAP_DANCE_SIZE (VIABLE_TAP_DANCE_ENTRIES * sizeof(viable_tap_dance_entry_t))
 
-#define VIABLE_COMBO_OFFSET          (VIABLE_TAP_DANCE_OFFSET + VIABLE_TAP_DANCE_SIZE)
-#define VIABLE_COMBO_SIZE            (VIABLE_COMBO_ENTRIES * sizeof(viable_combo_entry_t))
+#define VIABLE_COMBO_OFFSET (VIABLE_TAP_DANCE_OFFSET + VIABLE_TAP_DANCE_SIZE)
+#define VIABLE_COMBO_SIZE (VIABLE_COMBO_ENTRIES * sizeof(viable_combo_entry_t))
 
-#define VIABLE_KEY_OVERRIDE_OFFSET   (VIABLE_COMBO_OFFSET + VIABLE_COMBO_SIZE)
-#define VIABLE_KEY_OVERRIDE_SIZE     (VIABLE_KEY_OVERRIDE_ENTRIES * sizeof(viable_key_override_entry_t))
+#define VIABLE_KEY_OVERRIDE_OFFSET (VIABLE_COMBO_OFFSET + VIABLE_COMBO_SIZE)
+#define VIABLE_KEY_OVERRIDE_SIZE (VIABLE_KEY_OVERRIDE_ENTRIES * sizeof(viable_key_override_entry_t))
 
 #define VIABLE_ALT_REPEAT_KEY_OFFSET (VIABLE_KEY_OVERRIDE_OFFSET + VIABLE_KEY_OVERRIDE_SIZE)
-#define VIABLE_ALT_REPEAT_KEY_SIZE   (VIABLE_ALT_REPEAT_KEY_ENTRIES * sizeof(viable_alt_repeat_key_entry_t))
+#define VIABLE_ALT_REPEAT_KEY_SIZE (VIABLE_ALT_REPEAT_KEY_ENTRIES * sizeof(viable_alt_repeat_key_entry_t))
 
-#define VIABLE_ONE_SHOT_OFFSET       (VIABLE_ALT_REPEAT_KEY_OFFSET + VIABLE_ALT_REPEAT_KEY_SIZE)
-#define VIABLE_ONE_SHOT_SIZE         sizeof(viable_one_shot_t)
+#define VIABLE_ONE_SHOT_OFFSET (VIABLE_ALT_REPEAT_KEY_OFFSET + VIABLE_ALT_REPEAT_KEY_SIZE)
+#define VIABLE_ONE_SHOT_SIZE sizeof(viable_one_shot_t)
 
-#define VIABLE_LEADER_OFFSET         (VIABLE_ONE_SHOT_OFFSET + VIABLE_ONE_SHOT_SIZE)
-#define VIABLE_LEADER_SIZE           (VIABLE_LEADER_ENTRIES * sizeof(viable_leader_entry_t))
+#define VIABLE_LEADER_OFFSET (VIABLE_ONE_SHOT_OFFSET + VIABLE_ONE_SHOT_SIZE)
+#define VIABLE_LEADER_SIZE (VIABLE_LEADER_ENTRIES * sizeof(viable_leader_entry_t))
 
-#define VIABLE_MAGIC_SIZE            6
-#define VIABLE_MAGIC_OFFSET          (VIABLE_LEADER_OFFSET + VIABLE_LEADER_SIZE)
+#define VIABLE_MAGIC_SIZE 6
+#define VIABLE_MAGIC_OFFSET (VIABLE_LEADER_OFFSET + VIABLE_LEADER_SIZE)
 
-#define VIABLE_QMK_SETTINGS_OFFSET   (VIABLE_MAGIC_OFFSET + VIABLE_MAGIC_SIZE)
+#define VIABLE_QMK_SETTINGS_OFFSET (VIABLE_MAGIC_OFFSET + VIABLE_MAGIC_SIZE)
 // VIABLE_QMK_SETTINGS_SIZE is defined in post_config.h (44 bytes)
 
-#define VIABLE_FRAGMENT_OFFSET       (VIABLE_QMK_SETTINGS_OFFSET + VIABLE_QMK_SETTINGS_SIZE)
-#define VIABLE_FRAGMENT_SIZE         VIABLE_FRAGMENT_MAX_INSTANCES  // 21 bytes
+#define VIABLE_FRAGMENT_OFFSET (VIABLE_QMK_SETTINGS_OFFSET + VIABLE_QMK_SETTINGS_SIZE)
+#define VIABLE_FRAGMENT_SIZE VIABLE_FRAGMENT_MAX_INSTANCES // 21 bytes
 
 // Total EEPROM size (all viable storage areas)
-#define VIABLE_EEPROM_SIZE           (VIABLE_FRAGMENT_OFFSET + VIABLE_FRAGMENT_SIZE)
+#define VIABLE_EEPROM_SIZE (VIABLE_FRAGMENT_OFFSET + VIABLE_FRAGMENT_SIZE)
 
 // Public API
 void viable_init(void);
@@ -280,7 +280,7 @@ void viable_keycode_tap(uint16_t keycode);
 
 // Keyboard definition functions
 uint32_t viable_get_definition_size(void);
-uint8_t viable_get_definition_chunk(uint16_t offset, uint8_t *buffer, uint8_t max_size);
+uint8_t  viable_get_definition_chunk(uint16_t offset, uint8_t *buffer, uint8_t max_size);
 
 // Weak keyboard hook for post-init
 void keyboard_post_init_core_kb(void);
