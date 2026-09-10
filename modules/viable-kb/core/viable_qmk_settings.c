@@ -402,8 +402,11 @@ void viable_qmk_settings_reset(void) {
 // For booleans: return -1 to use Viable's setting, 0 for false, 1 for true
 // For uint16_t: return 0 to use Viable's setting, or a positive value to override
 // User hooks are checked FIRST - they always beat Viable's settings
-// Note: get_tapping_term_viable is in viable_tap_dance.c
 // Note: get_combo_term_viable is in viable_combo.c
+
+__attribute__((weak)) uint16_t get_tapping_term_viable(uint16_t keycode, keyrecord_t *record) {
+    return 0;  // Default: use Viable's setting
+}
 
 __attribute__((weak)) int8_t get_permissive_hold_viable(uint16_t keycode, keyrecord_t *record) {
     return -1;  // Default: use Viable's setting
@@ -422,6 +425,28 @@ __attribute__((weak)) uint16_t get_quick_tap_term_viable(uint16_t keycode, keyre
 }
 
 // Viable owns these functions - user hook is checked FIRST
+uint16_t get_tapping_term(uint16_t keycode, keyrecord_t *record) {
+    uint16_t user_term = get_tapping_term_viable(keycode, record);
+    if (user_term > 0) {
+        return user_term;
+    }
+
+#ifdef TAP_DANCE_ENABLE
+    // Per-tap-dance custom timing from Viable
+    if (keycode >= QK_TAP_DANCE && keycode <= QK_TAP_DANCE_MAX) {
+        viable_tap_dance_entry_t td;
+        if (viable_get_tap_dance(keycode & 0xFF, &td) == 0 && TD_ENABLED(td)) {
+            uint16_t term = td.custom_tapping_term & 0x7FFF;  // Mask off enabled bit
+            if (term > 0) {
+                return term;
+            }
+        }
+    }
+#endif
+
+    return settings.tapping_term;
+}
+
 bool get_permissive_hold(uint16_t keycode, keyrecord_t *record) {
     int8_t user_val = get_permissive_hold_viable(keycode, record);
     if (user_val >= 0) return user_val;

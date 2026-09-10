@@ -27,6 +27,16 @@
 #    define VIABLE_LEADER_ENTRIES 0
 #endif
 
+// Route QMK's tap-hold decisions through the per-key callbacks implemented in
+// viable_qmk_settings.c so the values stored via QMK Settings (tapping term,
+// permissive hold, hold-on-other-key-press, quick tap term) take effect at
+// runtime. These must be C defines, not rules.mk variables: without them QMK
+// compiles the callbacks out and uses the compile-time constants instead.
+#define TAPPING_TERM_PER_KEY
+#define PERMISSIVE_HOLD_PER_KEY
+#define HOLD_ON_OTHER_KEY_PRESS_PER_KEY
+#define QUICK_TAP_TERM_PER_KEY
+
 // QMK settings storage size (viable_qmk_settings_t)
 #define VIABLE_QMK_SETTINGS_SIZE 44
 

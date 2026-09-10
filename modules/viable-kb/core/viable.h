@@ -119,6 +119,8 @@ typedef struct __attribute__((packed)) {
     uint16_t custom_tapping_term;  // bit 15 = enabled, bits 0-14 = timing (ms)
 } viable_tap_dance_entry_t;
 _Static_assert(sizeof(viable_tap_dance_entry_t) == 10, "viable_tap_dance_entry_t must be 10 bytes");
+// Check if tap dance entry is enabled (bit 15 of custom_tapping_term)
+#define TD_ENABLED(entry) ((entry).custom_tapping_term & 0x8000)
 
 // Combo entry structure (12 bytes)
 // Enabled when custom_combo_term bit 15 = 1
